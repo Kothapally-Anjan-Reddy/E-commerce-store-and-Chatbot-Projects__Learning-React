@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Bot</title>
+    <style>
+        body{
+            font-family:Arial;
+            margin-top:0px;
+            margin-bottom:0px;
+        }
+        .send-button{
+            background-color:rgb(25, 135, 84);
+            border-radius:10px;
+            margin-left:10px;
+            border:none;
+            color:white;
+            padding:12px 15px;
+            font-size:15px;
+            cursor:pointer;
+        }
+
+        .chat-input{
+            padding:12px 15px;
+            border-width:1px;
+            border-radius:10px;
+            font-size:15px;
+            flex-grow:1;
+        }
+
+        .chat-input-container{
+            display:flex;
+            margin-bottom:50px;
+        }
+
+        .app-container{
+            max-width:600px;
+            margin-left:auto;
+            margin-right:auto;
+
+            height:100vh;
+            display:flex;
+            flex-direction:column;
+        }
+        
+        .chat-message-user{
+            display:flex;
+            justify-content:end;
+            align-items:start;
+        }
+
+        .chat-message-robot{
+            display:flex;
+            align-items:start;
+        }
+
+        .chat-message-text{
+            background-color:rgb(238,238,238);
+            padding:15px 20px;
+            border-radius:10px;
+            margin-right:10px;
+            margin-left:10px;
+            margin-bottom:20px;
+            max-width:300px;
+        }
+        
+        .chat-message-profile{
+            width:45px;
+        }
+        .chat-messages-container{
+            flex-grow:1;
+            margin-top:25px;
+            overflow: scroll;
+            scrollbar-width:none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="js-container"></div>
+    
+    <!-- <script src="basics.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/supersimpledev@8.6.4/react.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/supersimpledev@8.6.4/react-dom.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/supersimpledev@8.6.4/babel.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/supersimpledev@8.6.4/chatbot.js"></script>
+
+    <script type="text/babel">
+        function ChatInput({
+            chatMessages,
+            setChatMessages,
+            isLoading,
+            setIsLoading
+        }){
+            const [inputText,setInputText]=React.useState('')
+            
+            function saveInputText(event){  //It gets what is being changed
+                setInputText(event.target.value) //It retreives the value in it.
+            }
+
+            function sendMessage() {
+                if (!inputText.trim() || isLoading) {
+                    return;
+                }
+
+                const currentInputText = inputText;
+
+                // Add user's message
+                setChatMessages([
+                    ...chatMessages,
+                    {
+                        message: currentInputText,
+                        sender: 'user',
+                        id: crypto.randomUUID()
+                    }
+                ]);
+
+                // Show loading immediately
+                setIsLoading(true);
+
+                // Clear input box
+                setInputText('');
+
+                // Get response
+                // Later this can be an API call
+                setTimeout(() => {
+
+                    const response = Chatbot.getResponse(currentInputText);
+
+                    setChatMessages((currentMessages) => [
+                        ...currentMessages,
+                        {
+                            message: response,
+                            sender: 'robot',
+                            id: crypto.randomUUID()
+                        }
+                    ]);
+
+                    // Response received → stop loading
+                    setIsLoading(false);
+
+                }, 1000);
+            }
+
+            return (
+                <div class="chat-input-container">
+                    <input 
+                        class="chat-input"
+                        placeholder="Enter a message to chatbot"
+                        size="30"
+                        onChange={saveInputText}
+                        value={inputText}   //Controlled Input.
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                                sendMessage();
+                            }
+                        }}
+                    />
+                    <button 
+                        onClick={sendMessage}
+                        class="send-button"
+                    >Send</button>
+                    </div>
+            )
+        }
+
+        function ChatMessage({message,sender}){
+            //const message=props.message; ->1
+            //const {message,sender}=props; ->2 but parameter must be props only
+
+            /*if (sender==='robot'){
+                return(
+                    <div>
+                        <img src="bot.png" width="50" />
+                        {message}
+                    </div>
+                )
+            }*/
+
+            return (
+                <div class={
+                    sender==='user' 
+                    ? 'chat-message-user'
+                    :'chat-message-robot'
+                }>
+                    {sender ==='robot' && <img src="bot.png" class="chat-message-profile"/>}
+                    <div class="chat-message-text">
+                        {message}
+                    </div>
+                    {sender==='user' && <img src="user.png" class="chat-message-profile" />}
+                </div>
+            )
+        }
+
+        
+       function ChatMessages({chatMessages, isLoading}) {
+            const chatMessagesRef = React.useRef(null);
+
+            React.useEffect(() => {
+                const containerElem = chatMessagesRef.current;
+
+                if (containerElem) {
+                    containerElem.scrollTop = containerElem.scrollHeight;
+                }
+            }, [chatMessages, isLoading]);
+
+            return (
+                <div
+                    class="chat-messages-container"
+                    ref={chatMessagesRef}
+                >
+                    {chatMessages.map(({message, sender, id}) => {
+                        return (
+                            <ChatMessage
+                                message={message}
+                                sender={sender}
+                                key={id}
+                            />
+                        );
+                    })}
+
+                    {/* Loading appears here */}
+                    {isLoading && (
+                        <ChatMessage
+                            message="Loading..."
+                            sender="robot"
+                        />
+                    )}
+                </div>
+            );
+        }
+
+
+        function App() {
+            const [chatMessages, setChatMessages] = React.useState([
+                {
+                    message: "What's on your mind?",
+                    sender: 'robot',
+                    id: 'id1'
+                }
+            ]);
+
+            const [isLoading, setIsLoading] = React.useState(false);
+
+            return (
+                <div class="app-container">
+                    <ChatMessages 
+                        chatMessages={chatMessages}
+                        isLoading={isLoading}
+                    />
+
+                    <ChatInput 
+                        chatMessages={chatMessages}
+                        setChatMessages={setChatMessages}
+                        isLoading={isLoading}
+                        setIsLoading={setIsLoading}
+                    />
+                </div>
+            );
+        }
+
+        const container=document.querySelector('.js-container')
+        const root=ReactDOM.createRoot(container)
+        //root.render("Welcome to Anjan's Factory") //This is not appeared because the next line renders other thing inside same container
+        root.render(<App />)
+
+        // In the above line we are using the div to render because we can keep any number of objects in that element and render it unlike others which only renders themselves
+    </script>
+</body>
+</html>
+
+
+<pre>
+# Notes:
+1.  <> </> is known as fragment which lets us hold or contain many elements at one place instead of creating a div which takes extra space.
+2. input element has many attributes one is placeholder which stores values until a text is typed and other one is size which takes input like how many characters can fit in to it.
+3. props is the short form of properties. It makes us reuse other ecomponents without changing the internal code by just passing different attributes.
+4. See how the props elements are used when we take the outside. The process is clled Destructuring.(2 methods)
+5. See the use of Guard operator (&&) which is used instead of the if else statements in jsx. if the statement before the guard operator is true then the statement executes second.
+6. Best practise is to create a component to save app instead of variable.
+7. React uses mostly components because it lets us work on a small piece of website once at a time.
+8. State makes us website more interactive.
+9. Components helps us create our own HTML elements.
+10. All messages must have a unique key with it to eaily identify the messages, so id is introduced
+11. Event Handlers run a function when we interact with the website.
+12. Event is written after on and the event handler has function of what to be doen after the event ahs happended.
+13. The function must be passed without the brackets() which executes then and not do anything later. SO, it does not contain () in it.
+14. crypto.randomUUID() will give you unique id always.
+15. Event handlers only runs function when event occurs but it will not update the html
+-> for the updation of the html we use state: data that is connected to the HTML
+-> when vairables are upadted nothig in html is changed so, we conver the chatMessages to the state to directly update the html file
+16. React.useState(variable data) This returns a array
+17. Spread operator(...) actually takes all values from previous object to the new one.
+18. So, state is data that is connected to the HTML.
+19. Do not do anything manually like updating the DOM or other things, it may interfere with the React. Use the given functions only.
+20. Controlled Input is when the variable changes anywhere it also updates
+</pre>

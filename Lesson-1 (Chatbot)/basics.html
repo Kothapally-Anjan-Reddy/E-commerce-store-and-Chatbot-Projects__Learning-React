@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to React Factory</title>
+</head>
+<body>
+    <h1>Hello Welcome</h1>
+    <div class="js-container"></div>
+    
+    <!-- <script src="basics.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/supersimpledev@8.6.4/react.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/supersimpledev@8.6.4/react-dom.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/supersimpledev@8.6.4/babel.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+
+    <script type="text/babel">
+        const x=10
+        const p=10
+        const div=(
+            <div>
+                <button>Hello</button>
+                <p>Cost of Shoes=$ {x}</p>
+                <p>Discount={p}%</p>
+                <p>Final price=$ {(p/100)*x}</p>
+                <p>{time}</p>
+            </div>
+        )
+        const container=document.querySelector('.js-container')
+        const root=ReactDOM.createRoot(container)
+        //root.render("Welcome to Anjan's Factory") //This is not appeared because the next line renders other thing inside same container
+        root.render(div)
+
+        // In the above line we are using the div to render because we can keep any number of objects in that element and render it unlike others which only renders themselves
+    </script>
+</body>
+</html>
+
+<pre>
+Note:
+1. The render can only render 1 element.
+2. The element can only has one object in it at level 0. so, in that others can be present like div.
+3. Babel is a compiler which converts other languages like jsx to js
+4. ReactDOM.createRoot(container_name where to render).render(what _to_render)
+5. document.querySelector(".class_name or #id_name")
+6. Import all required external libraries and required packages before running the code.
+</pre>
